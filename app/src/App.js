@@ -1,48 +1,86 @@
 import './App.css';
 import Square from "./components/Square";
-import {useState} from "react";
+import {useState, useEffect} from "react";
 
-const colors = ["blue", "yellow"]
-const squares = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+const colors = [
+    {color: "blue", matched: false},
+    {color: "yellow", matched: false},
+    {color: "red", matched: false},
+    {color: "green", matched: false},
+    {color: "black", matched: false},
+    {color: "brown", matched: false}
+]
 
 function App() {
 
-    const randomIndex = Math.floor(Math.random() * colors.length)
+    const [getColor, setColor] = useState([])
+    const [getTurns, setTurns] = useState(0)
 
-    const [getColor, setColor] = useState("grey")
-    const [getSquareSelected, setSquareSelected] = useState([])
-    const [getCounter, setCounter] = useState(0)
+    const [getChoiceOne, setChoiceOne] = useState(null)
+    const [getChoiceTwo, setChoiceTwo] = useState(null)
 
-    function fillColor() {
-        setColor(colors[randomIndex])
-        getSquareSelected.push(getColor)
-        console.log(getSquareSelected)
+    const [getDisabled, setDisabled] = useState(false)
 
-        if (getSquareSelected[0] === getSquareSelected[1]) {
-            setCounter(getCounter + 1)
-            setSquareSelected([])
+    const shuffleColors = () => {
+        const shuffledColors = [...colors, ...colors]
+            .sort(() => Math.random() - 0.5)
+            .map((clr) => ({...clr, id: Math.random()}))
+        setChoiceOne(null)
+        setChoiceTwo(null)
+        setColor(shuffledColors)
+        setTurns(0)
+    }
+
+    // console.log(getColor)
+    const handleChoice = (color) => {
+        getChoiceOne ? setChoiceTwo(color) : setChoiceOne(color)
+    }
+
+    useEffect(() => {
+        if (getChoiceOne && getChoiceTwo) {
+            setDisabled(true)
+            if (getChoiceOne.color === getChoiceTwo.color) {
+                setColor(prevColor => {
+                    return prevColor.map(clr => {
+                        if (clr.color === getChoiceOne.color) {
+                            return {...clr, matched: true}
+                        } else {
+                            return clr
+                        }
+                    })
+                })
+                resetTurn()
+            } else {
+                setTimeout(() => resetTurn(), 1000)
+            }
         }
-        if (getSquareSelected[0] !== getSquareSelected[1]) {
-            setTimeout(() => {
-                setSquareSelected([])
-                setColor("grey")
-            }, 3000);
-        }
+    }, [getChoiceOne, getChoiceTwo])
+
+    useEffect(() => {
+        shuffleColors()
+    }, [])
+
+
+    const resetTurn = () => {
+        setChoiceOne(null)
+        setChoiceTwo(null)
+        setTurns(prevTurns => prevTurns + 1)
+        setDisabled(false)
     }
 
     return (
-
-        <div className="d-flex column a-center">
-            <h2>Counter: {getCounter}</h2>
-            <div className="wrapper d-flex j-center">
-                {squares.map((x, i) => <Square square={x} index={i} key={i} fillColor={fillColor} getColor={getColor}/>)}
+            <div className="d-flex column a-center">
+                <h1>Memory Game</h1>
+                <button onClick={shuffleColors}>New Game</button>
+                <div className="wrapper d-flex j-center">
+                    {getColor.map(clr => (
+                        <Square key={clr.id} color={clr} handleChoice={handleChoice}
+                                disabled={getDisabled}
+                                flipped={clr === getChoiceOne || clr === getChoiceTwo || clr.matched}/>
+                    ))}
+                </div>
+                <h3>Turns: {getTurns}</h3>
             </div>
-
-            {/*<div className="wrapper d-flex j-center">*/}
-            {/*    {squares.map((x, i) => <div  key={i} className="box" style={{backgroundColor: getColor}} onClick={fillColor}*/}
-            {/*    />)}*/}
-            {/*</div>*/}
-        </div>
     );
 }
 

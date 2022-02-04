@@ -1,13 +1,18 @@
-import React from 'react';
+import './Square.css'
 
-const Square = ({fillColor, getColor, index, square}) => {
+export default function Square({color, handleChoice, flipped, disabled}) {
 
-
+    const handleClick = () => {
+        if (!disabled) {
+            handleChoice(color)
+        }
+    }
     return (
-        <div>
-            <div className="box" style={{backgroundColor: getColor}} onClick={fillColor}/>
+        <div className="card">
+            <div className={flipped ? "flipped" : ""}>
+                <div className="box color" style={{backgroundColor: color.color}}></div>
+                <div className="box cover" onClick={handleClick}></div>
+            </div>
         </div>
-    );
-};
-
-export default Square;
+    )
+}
